@@ -4,7 +4,6 @@ import com.shenzhen.teamway.cameraiprotocol.common.NamedThreadFactory;
 import com.shenzhen.teamway.cameraiprotocol.server.Server;
 import com.shenzhen.teamway.cameraiprotocol.util.ConfigInfo;
 import io.netty.bootstrap.ServerBootstrap;
-import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
@@ -59,11 +58,15 @@ public class ProtocolServer implements Server {
 
     public void start(int listenPort, final int bossThreadNum, final int workerThreadNum, final int businessThreadNum, String service) throws Exception {
 
-        ThreadFactory bossFactory = new NamedThreadFactory("服务boss端口" +listenPort+"线程数"+ bossThreadNum + "-");
-        bossGroup = new NioEventLoopGroup(bossThreadNum,bossFactory);
-        ThreadFactory workFactory = new NamedThreadFactory("服务work端口" +listenPort+"线程数"+ workerThreadNum + "-");
-        workerGroup = new NioEventLoopGroup(workerThreadNum,workFactory);
-        final ThreadFactory serverBusinessTF = new NamedThreadFactory("NETTYSERVER-BUSINESS-"+businessThreadNum+"-");
+        if (!startFlag.compareAndSet(false, true)) {
+            return;
+        }
+
+        final ThreadFactory bossFactory = new NamedThreadFactory("boss-"+ bossThreadNum + "-");
+        bossGroup = new NioEventLoopGroup(bossThreadNum, bossFactory);
+        final ThreadFactory workFactory = new NamedThreadFactory("work-"+ workerThreadNum + "-");
+        workerGroup = new NioEventLoopGroup(workerThreadNum, workFactory);
+        final ThreadFactory serverBusinessFactory = new NamedThreadFactory("business-" + businessThreadNum + "-");
 
         ServerBootstrap bootstrap = new ServerBootstrap();
         // businessThread池在NettyServerChannelInitializer中开启
@@ -72,11 +75,10 @@ public class ProtocolServer implements Server {
                 .option(ChannelOption.SO_BACKLOG, 1000)
                 .option(ChannelOption.TCP_NODELAY, true)
                 .option(ChannelOption.SO_SNDBUF, 1048576 * 20)
-                .option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
                 .channel(NioServerSocketChannel.class)
                 .childOption(ChannelOption.SO_KEEPALIVE, true);
 
-        bootstrap.childHandler(new NettyServerChannelInitializer(service, Executors.newFixedThreadPool(businessThreadNum, serverBusinessTF)));
+        bootstrap.childHandler(new NettyServerChannelInitializer(service, Executors.newFixedThreadPool(businessThreadNum, serverBusinessFactory)));
         channel = bootstrap.bind(new InetSocketAddress(listenPort)).sync().channel();
         LOG.info("Server started,listen at: " + listenPort);
     }
