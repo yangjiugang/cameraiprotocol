@@ -46,7 +46,7 @@ public class ProtocolServer implements Server {
 
         LOG.debug("businessThreadNum:" + appPpt.getProperty("businessThreadNum"));
         try {
-            ns.start(Integer.valueOf(appPpt.getProperty("port")), Integer.valueOf(appPpt.getProperty("bossThreadNum").trim()), Integer.valueOf(appPpt.getProperty("workerThreadNum").trim()), Integer.valueOf(appPpt.getProperty("businessThreadNum").trim()), "businessHandler");
+            ns.start(Integer.valueOf(appPpt.getProperty("port")), Integer.valueOf(appPpt.getProperty("bossThreadNum").trim()), Integer.valueOf(appPpt.getProperty("workerThreadNum").trim()), Integer.valueOf(appPpt.getProperty("businessThreadNum").trim()), "handlerImpl");
 //            ns.start(Integer.valueOf(appPpt.getProperty("port_count")), Integer.valueOf(appPpt.getProperty("bossThreadNum").trim()), Integer.valueOf(appPpt.getProperty("workerThreadNum").trim()), Integer.valueOf(appPpt.getProperty("businessThreadNum").trim()), "countBusinessHandler");
 //            ns.start(Integer.valueOf(appPpt.getProperty("port_query")), Integer.valueOf(appPpt.getProperty("bossThreadNum").trim()), Integer.valueOf(appPpt.getProperty("workerThreadNum").trim()), Integer.valueOf(appPpt.getProperty("businessThreadNum").trim()), "queryOrderBusinessHandler");
         } catch (Exception e) {
